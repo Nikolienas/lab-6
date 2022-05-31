@@ -2,7 +2,6 @@
 import requests
 import telebot
 from telebot import types
-# @uram_tbot - имя телеграм бота
 token = '5076012878:AAFqm5lP8WC5qBpN_HfsCnYkr2l81DNIfJc'
 bot = telebot.TeleBot(token)
 
