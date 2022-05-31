@@ -1,2 +1,2 @@
 #!bin/bash
-pkill -9 bot_v3.py
+pkill -9 TGBOT
