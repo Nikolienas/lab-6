@@ -8,7 +8,7 @@ bot = telebot.TeleBot(token)
 @bot.message_handler(commands=["start"])
 def start(m, res=False):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    button_phone = types.KeyboardButton(text='Отправить свой контакт (телеграмма)', request_contact=True)
+    button_phone = types.KeyboardButton(text='Отправить свой контакт (тест)', request_contact=True)
     markup.add(button_phone)
     bot.send_message(m.chat.id, 'Приветствую тебя, {0.first_name}, я информационный бот. '
                                 '\nДля получения информации можете воспользоваться подсказками ниже'
