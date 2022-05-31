@@ -1,4 +1,0 @@
-#!/bin/bash
-./TGBOT_KILL
-git pull
-nohup ./test &
