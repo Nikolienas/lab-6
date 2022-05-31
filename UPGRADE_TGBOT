@@ -1,3 +1,4 @@
 #!/bin/bash
+pkill -9 TGBOT
 git pull
-python3 bot_v3.py
+nohup ./TGBOT &
