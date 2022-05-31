@@ -129,7 +129,7 @@ def phone(m, res=False):
             url = 'https://uram.ddns.net/uram_bot/tariffs'
             how = requests.get(url)
             how_data = how.json()
-            bot.send_message(m.chat.id, "Оплатить можно по карте. \nСтоимость начало поездки = "
+            bot.send_message(m.chat.id, "Оплатить можно наличкой \nСтоимость начало поездки = "
                              + str(how_data['tariffs'][0]['cost_start']) + " рублей \n1 минута поездки = "
                              + str(how_data['tariffs'][0]['cost_minute']) + ' рублей'
                              + '\nОждиание = ' + str(how_data['tariffs'][0]['cost_pause']) + ' рублей')
