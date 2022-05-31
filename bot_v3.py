@@ -1,5 +1,5 @@
 # coding: utf - 8
-import requestsk
+import requests
 import telebot
 from telebot import types
 token = '5076012878:AAFqm5lP8WC5qBpN_HfsCnYkr2l81DNIfJc'
