@@ -1,2 +1,2 @@
 #!/bin/bash
-nohup ./test &
+nohup ./TGBOT &

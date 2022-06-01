@@ -1,2 +1,2 @@
 #!/bin/bash
-pkill -9 test
+pkill -9 TGBOT
