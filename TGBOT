@@ -152,4 +152,4 @@ def phone(m, res=False):
 
 
 print('bot started')
-bot.polling(none_stop=True, interval=0)
+bot.infinity_polling()
