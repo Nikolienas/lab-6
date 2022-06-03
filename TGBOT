@@ -34,14 +34,13 @@ def phone(m, res=False):
     if m.chat.type == 'private':
         if m.text == 'История поездок':
             def history():
-                phn = {'phone': pol}
-                url = 'https://uram.ddns.net/uram_bot/history'
-                req_j = requests.post(url, json=phn)
-                req_data = req_j.json()
-                if req_j.status_code == 200:
-                    try:
-                        for req_data['history'][0] in req_data['history']:
-                            bot.send_message(m.from_user.id, ('Цена: ' + str(req_data['history'][0]['cost']) +
+                try:
+                    phn = {'phone': pol}
+                    url = 'https://uram.ddns.net/uram_bot/history'
+                    req_j = requests.post(url, json=phn)
+                    req_data = req_j.json()
+                    for req_data['history'][0] in req_data['history']:
+                        bot.send_message(m.from_user.id, ('Цена: ' + str(req_data['history'][0]['cost']) +
                                                                     '\nНачало: ' + req_data['history'][0]['start_time'].
                                                                     replace('Mon', 'Понедельник').replace('Tue',
                                                                                                           'Вторник').
@@ -73,12 +72,18 @@ def phone(m, res=False):
                                                                     '\nСтатус поездки: ' + req_data['history'][0][
                                                                         'status'].
                                                                     replace('end', 'завершена')))
-                    except KeyError:
-                        bot.send_message(m.from_user.id, 'Что то пошло не так')
-                    except IndexError:
-                        print()
-                else:
+                except KeyError:
                     bot.send_message(m.from_user.id, 'Что то пошло не так')
+                except IndexError:
+                    print()
+                except UnboundLocalError:
+                    print()
+                except NameError:
+                    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+                    button_phone = types.KeyboardButton(text='Отправить свой контакт', request_contact=True)
+                    markup.add(button_phone)
+                    bot.send_message(m.chat.id, "Пожалуйста, отправьте ваш контакт и попытайтесь снова".format(m.from_user), reply_markup=markup)
+
 
             t = history()
 
@@ -95,20 +100,27 @@ def phone(m, res=False):
                         req = {'lat': '18', 'lon': '18'}
                         data = message.location.latitude
                         data2 = message.location.longitude
-                        req['lat'] = data
-                        req['lon'] = data2
-                        req['phone'] = pol
-                        req_j = requests.post(url, json=req)
-                        req_data = req_j.json()
-                        a = req_data['lat']
-                        b = req_data['lon']
-                        print(a, b)
-                        global result
-                        result = a, b
-                        print(result)
-                        longitude = result[1]
-                        latitude = result[0]
-                        bot.send_location(m.from_user.id, latitude, longitude)
+                        try:
+                            req['lat'] = data
+                            req['lon'] = data2
+                            req['phone'] = pol
+                            req_j = requests.post(url, json=req)
+                            req_data = req_j.json()
+                            a = req_data['lat']
+                            b = req_data['lon']
+                            print(a, b)
+                            global result
+                            result = a, b
+                            print(result)
+                            longitude = result[1]
+                            latitude = result[0]
+                            bot.send_location(m.from_user.id, latitude, longitude)
+                        except NameError:
+                            markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+                            button_phone = types.KeyboardButton(text='Отправить свой контакт', request_contact=True)
+                            markup.add(button_phone)
+                            bot.send_message(m.chat.id, "Пожалуйста, отправьте ваш контакт и попытайтесь снова".format(m.from_user),
+                                             reply_markup=markup)
 
                     test = greting()
             keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
