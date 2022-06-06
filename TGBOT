@@ -3,7 +3,7 @@ import requests
 import telebot
 from telebot import types
 
-token = '5460636014:AAErtBOZsphYsv1sVMZZMHlDg-Anvu7WGHk'
+token = '5076012878:AAFqm5lP8WC5qBpN_HfsCnYkr2l81DNIfJc'
 bot = telebot.TeleBot(token)
 
 
@@ -29,7 +29,8 @@ def contact(message):
         item1 = types.KeyboardButton('История поездок')
         item2 = types.KeyboardButton('Ближайший самокат')
         item3 = types.KeyboardButton('Информация')
-        markup.add(item1, item2, item3)
+        item4 = types.KeyboardButton("Поддержка")
+        markup.add(item1, item2, item3, item4)
         bot.send_message(message.chat.id, 'Что вас интересует?', reply_markup=markup)
 
 
@@ -174,7 +175,8 @@ def phone(m, res=False):
             item1 = types.KeyboardButton('История поездок')
             item2 = types.KeyboardButton('Ближайший самокат')
             item3 = types.KeyboardButton('Информация')
-            markup.add(item1, item2, item3)
+            item4 = types.KeyboardButton('Поддержка')
+            markup.add(item1, item2, item3, item4)
             bot.send_message(m.chat.id, 'Что вас интересует?', reply_markup=markup)
         elif m.text == 'Забронировать самокат':
             def bron():
@@ -199,8 +201,29 @@ def phone(m, res=False):
                 f.write(str(result) + " " + "на" + " " + str(message.text) + ', номер бронировщика: ' + pol + '\n')
                 f.close()
             bron()
-
+        elif m.text == "Поддержка":
+            keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+            item1 = types.KeyboardButton(text='Никнеймы разработчиков')
+            item2 = types.KeyboardButton(text='Номера телефонов')
+            item3 = types.KeyboardButton(text='Почтовые адреса')
+            item4 = types.KeyboardButton(text='Назад')
+            keyboard.add(item1, item2, item3, item4)
+            bot.send_message(m.chat.id, 'Что вас интересует?', reply_markup=keyboard)
+        elif m.text == 'Никнеймы разработчиков':
+            nik = ["@fa_airat ::: @Odriskoll ::: @happy_rustik"]
+            bot.send_message(m.chat.id, nik)
+        elif m.text == 'Номера телефонов':
+            number = [" @fa_airat - 89174009767\n"
+                      "@Odriskoll - 89178056873\n"
+                      "@happy_rustik - 89273586384"]
+            bot.send_message(m.chat.id, number)
+        elif m.text == 'Почтовые адреса':
+            poshta = [" @fa_airat - airat1956@mail.ru\n"
+                      "@Odriskoll - nikolenas0606@imbox.ru\n"
+                      "@happy_rustik - rustam.sadykov.777@yandex.ru"]
+            bot.send_message(m.chat.id, poshta)
 
 
 print('bot started')
 bot.infinity_polling()
+
