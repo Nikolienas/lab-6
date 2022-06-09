@@ -22,8 +22,26 @@ def start(m, res=False):
 def contact(message):
     if message.contact is not None:
         print(message.contact)
-        global pol
         pol = '+' + message.contact.phone_number
+        print(message.contact.user_id)
+        m = []
+        m.append(message.contact.user_id)
+        def contact2():
+            for i in m:
+                if message.contact.user_id in m:
+                    if message.contact.user_id == i:
+                        global s1
+                        s1 = i
+        contact2()
+        def contact1():
+            d = []
+            d.append(pol)
+            for i in d:
+                if pol in d:
+                    if pol == i:
+                        global s
+                        s = i
+        contact1()
         bot.send_message(message.from_user.id, 'Запись контакта прошла успешна')
         markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
         item1 = types.KeyboardButton('История поездок')
@@ -40,7 +58,7 @@ def phone(m, res=False):
         if m.text == 'История поездок':
             def history():
                 try:
-                    phn = {'phone': pol}
+                    phn = {'phone': s}
                     url = 'https://uram.ddns.net/uram_bot/history'
                     req_j = requests.post(url, json=phn)
                     req_data = req_j.json()
@@ -109,7 +127,7 @@ def phone(m, res=False):
                             data2 = message.location.longitude
                             req['lat'] = data
                             req['lon'] = data2
-                            req['phone'] = pol
+                            req['phone'] = s
                             req_j = requests.post(url, json=req)
                             req_data = req_j.json()
                             a = req_data['lat']
@@ -120,12 +138,14 @@ def phone(m, res=False):
                             print(result)
                             longitude = result[1]
                             latitude = result[0]
+                            m.from_user.id = s1
+                            print(m.from_user.id)
                             bot.send_location(m.from_user.id, latitude, longitude)
                             def klon():
                                 mrka = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
                                 but1 = types.KeyboardButton(text='Забронировать самокат')
                                 mrka.add(but1)
-                                bot.send_message(m.chat.id, "Хотите забронировать этот самокат?", reply_markup=mrka)
+                                bot.send_message(m.from_user.id, "Хотите забронировать этот самокат?", reply_markup=mrka)
 
                             klon()
                         except:
@@ -198,7 +218,7 @@ def phone(m, res=False):
             def after_text_2(message):
                 print('Время, на которое человек забронировал самокат', message.text)
                 f = open("uid.txt", 'a')
-                f.write(str(result) + " " + "на" + " " + str(message.text) + ', номер бронировщика: ' + pol + '\n')
+                f.write(str(result) + " " + "на" + " " + str(message.text) + ', номер бронировщика: ' + s + '\n')
                 f.close()
             bron()
         elif m.text == "Поддержка":
@@ -226,4 +246,3 @@ def phone(m, res=False):
 
 print('bot started')
 bot.infinity_polling()
-
