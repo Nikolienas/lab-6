@@ -16,6 +16,8 @@ def start(m, res=False):
                                 '\nДля получения информации можете воспользоваться подсказками ниже'
                                 '\nЧто бы получить доступ к функционалу, отправьте свой номер.'.format(m.from_user),
                      reply_markup=markup)
+    user_id = m.from_user.id
+    print(user_id)
 
 
 @bot.message_handler(content_types=['contact'])
@@ -62,39 +64,48 @@ def phone(m, res=False):
                     url = 'https://uram.ddns.net/uram_bot/history'
                     req_j = requests.post(url, json=phn)
                     req_data = req_j.json()
-                    for req_data['history'][0] in req_data['history']:
-                        bot.send_message(m.from_user.id, ('Цена: ' + str(req_data['history'][0]['cost']) +
-                                                          '\nНачало: ' + req_data['history'][0]['start_time'].
-                                                          replace('Mon', 'Понедельник').replace('Tue',
-                                                                                                'Вторник').
-                                                          replace('Wed', 'Среда').replace('Thu', 'Четверг').
-                                                          replace('Fri', 'Пятница').replace('Sat', 'Суббота').
-                                                          replace('Sun', 'Воскресенье').replace('Jan',
-                                                                                                'Января').
-                                                          replace('Feb', 'Февраля').replace('Mar', 'Марта').
-                                                          replace('Apr', 'Апреля').replace('May', 'Мая').
-                                                          replace('June', 'Июня').replace('July', 'Июля').
-                                                          replace('Aug', 'Августа').replace('Sept',
-                                                                                            'Сентября').
-                                                          replace('Oct', 'Октября').replace('Nov', 'Ноября').
-                                                          replace('Dec', 'Декабря') +
-                                                          '\nКонец: ' + req_data['history'][0]['end_time'].
-                                                          replace('Mon', 'Понедельник').replace('Tue',
-                                                                                                'Вторник').
-                                                          replace('Wed', 'Среда').replace('Thu', 'Четверг').
-                                                          replace('Fri', 'Пятница').replace('Sat', 'Суббота').
-                                                          replace('Sun', 'Воскресенье').replace('Jan',
-                                                                                                'Января').
-                                                          replace('Feb', 'Февраля').replace('Mar', 'Марта').
-                                                          replace('Apr', 'Апреля').replace('May', 'Мая').
-                                                          replace('June', 'Июня').replace('July', 'Июля').
-                                                          replace('Aug', 'Августа').replace('Sept',
-                                                                                            'Сентября').
-                                                          replace('Oct', 'Октября').
-                                                          replace('Nov', 'Ноября').replace('Dec', 'Декабря') +
-                                                          '\nСтатус поездки: ' + req_data['history'][0][
-                                                              'status'].
-                                                          replace('end', 'завершена')))
+                    if m.from_user.id != s1:
+                        print('FUCK')
+                        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+                        button_phone = types.KeyboardButton(text='Отправить свой контакт', request_contact=True)
+                        markup.add(button_phone)
+                        bot.send_message(m.chat.id,
+                                         "Отправьте контакт повторно, произошли неполадки".format(m.from_user),
+                                         reply_markup=markup)
+                    else:
+                        for req_data['history'][0] in req_data['history']:
+                            bot.send_message(m.from_user.id, ('Цена: ' + str(req_data['history'][0]['cost']) +
+                                                              '\nНачало: ' + req_data['history'][0]['start_time'].
+                                                              replace('Mon', 'Понедельник').replace('Tue',
+                                                                                                    'Вторник').
+                                                              replace('Wed', 'Среда').replace('Thu', 'Четверг').
+                                                              replace('Fri', 'Пятница').replace('Sat', 'Суббота').
+                                                              replace('Sun', 'Воскресенье').replace('Jan',
+                                                                                                    'Января').
+                                                              replace('Feb', 'Февраля').replace('Mar', 'Марта').
+                                                              replace('Apr', 'Апреля').replace('May', 'Мая').
+                                                              replace('June', 'Июня').replace('July', 'Июля').
+                                                              replace('Aug', 'Августа').replace('Sept',
+                                                                                                'Сентября').
+                                                              replace('Oct', 'Октября').replace('Nov', 'Ноября').
+                                                              replace('Dec', 'Декабря') +
+                                                              '\nКонец: ' + req_data['history'][0]['end_time'].
+                                                              replace('Mon', 'Понедельник').replace('Tue',
+                                                                                                    'Вторник').
+                                                              replace('Wed', 'Среда').replace('Thu', 'Четверг').
+                                                              replace('Fri', 'Пятница').replace('Sat', 'Суббота').
+                                                              replace('Sun', 'Воскресенье').replace('Jan',
+                                                                                                    'Января').
+                                                              replace('Feb', 'Февраля').replace('Mar', 'Марта').
+                                                              replace('Apr', 'Апреля').replace('May', 'Мая').
+                                                              replace('June', 'Июня').replace('July', 'Июля').
+                                                              replace('Aug', 'Августа').replace('Sept',
+                                                                                                'Сентября').
+                                                              replace('Oct', 'Октября').
+                                                              replace('Nov', 'Ноября').replace('Dec', 'Декабря') +
+                                                              '\nСтатус поездки: ' + req_data['history'][0][
+                                                                  'status'].
+                                                              replace('end', 'завершена')))
                 except KeyError:
                     bot.send_message(m.from_user.id, 'Что то пошло не так')
                 except IndexError:
@@ -138,16 +149,28 @@ def phone(m, res=False):
                             print(result)
                             longitude = result[1]
                             latitude = result[0]
-                            m.from_user.id = s1
-                            print(m.from_user.id)
-                            bot.send_location(m.from_user.id, latitude, longitude)
-                            def klon():
-                                mrka = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-                                but1 = types.KeyboardButton(text='Забронировать самокат')
-                                mrka.add(but1)
-                                bot.send_message(m.from_user.id, "Хотите забронировать этот самокат?", reply_markup=mrka)
-
-                            klon()
+                            def block(message):
+                                if message.from_user.id == s1:
+                                    print(message.from_user.id)
+                                    bot.send_location(message.from_user.id, latitude, longitude)
+                                    def klon():
+                                        mrka = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+                                        but1 = types.KeyboardButton(text='Забронировать самокат')
+                                        mrka.add(but1)
+                                        bot.send_message(message.from_user.id, "Хотите забронировать этот самокат?",
+                                                         reply_markup=mrka)
+                                    klon()
+                                elif message.from_user.id != s1:
+                                    print('xuy: ', message.from_user.id)
+                                    bot.send_location(message.from_user.id, latitude, longitude)
+                                    def klon():
+                                        mrka = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+                                        but1 = types.KeyboardButton(text='Забронировать самокат')
+                                        mrka.add(but1)
+                                        bot.send_message(message.from_user.id, "Хотите забронировать этот самокат?",
+                                                         reply_markup=mrka)
+                                    klon()
+                            block(message)
                         except:
                             def long():
                                 markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -155,6 +178,7 @@ def phone(m, res=False):
                                 markup.add(button_phone)
                                 bot.send_message(m.chat.id, 'Произошла ошибка, отправьте повторно свой контакт'.format(
                                     m.from_user), reply_markup=markup)
+
                             long()
 
                     greting()
