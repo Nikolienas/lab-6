@@ -58,7 +58,7 @@ def phone(m, res=False):
         if m.text == 'История поездок':
             def history():
                 try:
-                    phn = {'phone': pol}
+                    phn = {'phone': s}
                     url = 'https://uram.ddns.net/uram_bot/history'
                     req_j = requests.post(url, json=phn)
                     req_data = req_j.json()
@@ -127,7 +127,7 @@ def phone(m, res=False):
                             data2 = message.location.longitude
                             req['lat'] = data
                             req['lon'] = data2
-                            req['phone'] = pol
+                            req['phone'] = s
                             req_j = requests.post(url, json=req)
                             req_data = req_j.json()
                             a = req_data['lat']
@@ -218,7 +218,7 @@ def phone(m, res=False):
             def after_text_2(message):
                 print('Время, на которое человек забронировал самокат', message.text)
                 f = open("uid.txt", 'a')
-                f.write(str(result) + " " + "на" + " " + str(message.text) + ', номер бронировщика: ' + pol + '\n')
+                f.write(str(result) + " " + "на" + " " + str(message.text) + ', номер бронировщика: ' + s + '\n')
                 f.close()
             bron()
         elif m.text == "Поддержка":
@@ -300,4 +300,3 @@ def phone(m, res=False):
 
 print('bot started')
 bot.infinity_polling()
-
