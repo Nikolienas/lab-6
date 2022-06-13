@@ -241,8 +241,15 @@ def phone(m, res=False):
 
             def after_text_2(message):
                 print('Время, на которое человек забронировал самокат', message.text)
+                a = bot.send_message(message.chat.id,'Номер:' )
+                bot.register_next_step_handler(a, after_text_3)
+                global o
+                o = message.text
+            def after_text_3(message):
+                print('Номер: ', message.text)
+                k = message.text
                 f = open("uid.txt", 'a')
-                f.write(str(result) + " " + "на" + " " + str(message.text) + ', номер бронировщика: ' + s + '\n')
+                f.write(str(result) + " " + "на" + " " + str(o) + ', номер бронировщика: ' + k + '\n')
                 f.close()
             bron()
         elif m.text == "Поддержка":
