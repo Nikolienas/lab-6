@@ -233,20 +233,20 @@ def phone(m, res=False):
             item1 = types.KeyboardButton(text='Назад')
             keyboard.add(item1)
 
-            def messages():
-                if m.chat.id == owner:
-                    chatId = message.text.split(': ')[0]
-                    text = message.text.split(': ')[1]
-                    bot.send_message(chatId, text)
+
+            if m.chat.id == owner:
+                    chatId = m.chat.id
+                    text = message.text
+                    bot.send_message(str(m.chat.id), text)
                     print('успех')
-                else:
+              else:
                     bot.send_message(m.chat.id, str(m.chat.id) + ': ' + m.text)
                     bot.send_message(m.chat.id, '%s, пожалуйста подождите' % m.chat.username)
                     print('ошибка')
 
-            messages()
+      
 
-                #except NameError:
+              
 
 
 print('bot started')
