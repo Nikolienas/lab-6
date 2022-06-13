@@ -235,8 +235,8 @@ def phone(m, res=False):
 
 
             if m.chat.id == owner:
-                    chatId = m.chat.id
-                    text = message.text
+           
+                    text = m.text
                     bot.send_message(str(m.chat.id), text)
                     print('успех')
               else:
