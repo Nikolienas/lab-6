@@ -2,10 +2,21 @@
 import requests
 import telebot
 from telebot import types
+import psycopg2
 
-token = '5460636014:AAErtBOZsphYsv1sVMZZMHlDg-Anvu7WGHk'
+token = '5076012878:AAFqm5lP8WC5qBpN_HfsCnYkr2l81DNIfJc'
 bot = telebot.TeleBot(token)
-nnn = 'норм'
+
+
+con = psycopg2.connect(
+  database="uram_tgbot",
+  user="postgres",
+  password="postgres",
+  host="localhost",
+  port="5432"
+)
+
+cur = con.cursor()
 
 @bot.message_handler(commands=["start"])
 def start(m, res=False):
@@ -44,6 +55,27 @@ def contact(message):
                         global s
                         s = i
         contact1()
+        e = 0
+        cur.execute("SELECT ID_CHAT FROM uram_tgbot")
+        try:
+            for id_chat in cur:
+                if message.chat.id in id_chat:
+                    e = + 1
+                    if e == 0:
+                        e = 0
+                        cur.execute("INSERT INTO uram_tgbot (ID_CHAT, PHONE) VALUES (%s, %s)",
+                                    (message.chat.id, message.contact.phone_number))
+                        con.commit()
+                    elif e >= 1:
+                        e = 0
+            else:
+                cur.execute("INSERT INTO uram_tgbot (ID_CHAT, PHONE) VALUES (%s, %s)",
+                            (message.chat.id, message.contact.phone_number))
+                con.commit()
+        except psycopg2.errors.UniqueViolation:
+            print()
+
+        con.commit()
         bot.send_message(message.from_user.id, 'Запись контакта прошла успешна')
         markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
         item1 = types.KeyboardButton('История поездок')
@@ -59,66 +91,65 @@ def phone(m, res=False):
     if m.chat.type == 'private':
         if m.text == 'История поездок':
             def history():
+                e = 0
+                cur.execute("SELECT ID_CHAT FROM uram_tgbot")
                 try:
-                    phn = {'phone': s}
-                    url = 'https://uram.ddns.net/uram_bot/history'
-                    req_j = requests.post(url, json=phn)
-                    req_data = req_j.json()
-                    if m.from_user.id != s1:
-                        print('FUCK')
-                        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-                        button_phone = types.KeyboardButton(text='Отправить свой контакт', request_contact=True)
-                        markup.add(button_phone)
-                        bot.send_message(m.chat.id,
-                                         "Отправьте контакт повторно, произошли неполадки".format(m.from_user),
-                                         reply_markup=markup)
-                    else:
-                        for req_data['history'][0] in req_data['history']:
-                            bot.send_message(m.from_user.id, ('Цена: ' + str(req_data['history'][0]['cost']) +
-                                                              '\nНачало: ' + req_data['history'][0]['start_time'].
-                                                              replace('Mon', 'Понедельник').replace('Tue',
-                                                                                                    'Вторник').
-                                                              replace('Wed', 'Среда').replace('Thu', 'Четверг').
-                                                              replace('Fri', 'Пятница').replace('Sat', 'Суббота').
-                                                              replace('Sun', 'Воскресенье').replace('Jan',
-                                                                                                    'Января').
-                                                              replace('Feb', 'Февраля').replace('Mar', 'Марта').
-                                                              replace('Apr', 'Апреля').replace('May', 'Мая').
-                                                              replace('June', 'Июня').replace('July', 'Июля').
-                                                              replace('Aug', 'Августа').replace('Sept',
-                                                                                                'Сентября').
-                                                              replace('Oct', 'Октября').replace('Nov', 'Ноября').
-                                                              replace('Dec', 'Декабря') +
-                                                              '\nКонец: ' + req_data['history'][0]['end_time'].
-                                                              replace('Mon', 'Понедельник').replace('Tue',
-                                                                                                    'Вторник').
-                                                              replace('Wed', 'Среда').replace('Thu', 'Четверг').
-                                                              replace('Fri', 'Пятница').replace('Sat', 'Суббота').
-                                                              replace('Sun', 'Воскресенье').replace('Jan',
-                                                                                                    'Января').
-                                                              replace('Feb', 'Февраля').replace('Mar', 'Марта').
-                                                              replace('Apr', 'Апреля').replace('May', 'Мая').
-                                                              replace('June', 'Июня').replace('July', 'Июля').
-                                                              replace('Aug', 'Августа').replace('Sept',
-                                                                                                'Сентября').
-                                                              replace('Oct', 'Октября').
-                                                              replace('Nov', 'Ноября').replace('Dec', 'Декабря') +
-                                                              '\nСтатус поездки: ' + req_data['history'][0][
-                                                                  'status'].
-                                                              replace('end', 'завершена')))
+                    for id_chat in cur:
+                        if m.chat.id in id_chat:
+                            e = +1
+                            if e >= 1:
+                                cur.execute("SELECT PHONE FROM uram_tgbot WHERE ID_CHAT = %s", [m.chat.id])
+                                cf = cur.fetchone()
+                                phn = {'phone': cf[0]}
+                                print(phn)
+                                url = 'https://uram.ddns.net/uram_bot/history'
+                                req_j = requests.post(url, json=phn)
+                                req_data = req_j.json()
+                                con.commit()
+                                print(req_data)
+                                for req_data['history'][0] in req_data['history']:
+                                    bot.send_message(m.from_user.id, ('Цена: ' + str(req_data['history'][0]['cost']) +
+                                                                    '\nНачало: ' + req_data['history'][0]['start_time'].
+                                                                    replace('Mon', 'Понедельник').replace('Tue',
+                                                                                                          'Вторник').
+                                                                    replace('Wed', 'Среда').replace('Thu', 'Четверг').
+                                                                    replace('Fri', 'Пятница').replace('Sat', 'Суббота').
+                                                                    replace('Sun', 'Воскресенье').replace('Jan',
+                                                                                                         'Января').
+                                                                    replace('Feb', 'Февраля').replace('Mar', 'Марта').
+                                                                    replace('Apr', 'Апреля').replace('May', 'Мая').
+                                                                    replace('June', 'Июня').replace('July', 'Июля').
+                                                                    replace('Aug', 'Августа').replace('Sept',
+                                                                                                      'Сентября').
+                                                                    replace('Oct', 'Октября').replace('Nov', 'Ноября').
+                                                                    replace('Dec', 'Декабря') +
+                                                                    '\nКонец: ' + req_data['history'][0]['end_time'].
+                                                                    replace('Mon', 'Понедельник').replace('Tue',
+                                                                                                         'Вторник').
+                                                                    replace('Wed', 'Среда').replace('Thu', 'Четверг').
+                                                                    replace('Fri', 'Пятница').replace('Sat', 'Суббота').
+                                                                    replace('Sun', 'Воскресенье').replace('Jan',
+                                                                                                          'Января').
+                                                                    replace('Feb', 'Февраля').replace('Mar', 'Марта').
+                                                                    replace('Apr', 'Апреля').replace('May', 'Мая').
+                                                                    replace('June', 'Июня').replace('July', 'Июля').
+                                                                    replace('Aug', 'Августа').replace('Sept',
+                                                                                                      'Сентября').
+                                                                    replace('Oct', 'Октября').
+                                                                    replace('Nov', 'Ноября').replace('Dec', 'Декабря') +
+                                                                    '\nСтатус поездки: ' + req_data['history'][0][
+                                                                        'status'].
+                                                                    replace('end', 'завершена')))
+                            elif e == 0:
+                                print('meh')
+
                 except KeyError:
                     bot.send_message(m.from_user.id, 'Что то пошло не так')
                 except IndexError:
                     print()
                 except UnboundLocalError:
                     print()
-                except NameError:
-                    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-                    button_phone = types.KeyboardButton(text='Отправить свой контакт', request_contact=True)
-                    markup.add(button_phone)
-                    bot.send_message(m.chat.id,
-                                     "Пожалуйста, отправьте ваш контакт и попытайтесь снова".format(m.from_user),
-                                     reply_markup=markup)
+                con.commit()
 
             t = history()
 
@@ -131,46 +162,57 @@ def phone(m, res=False):
                     print("latitude: %s; longitude: %s" % (message.location.latitude, message.location.longitude))
 
                     def greting():
+                        cur.execute("SELECT * FROM uram_tgbot")
+                        e = 0
                         try:
-                            url = 'https://uram.ddns.net/uram_bot/find'
-                            req = {'lat': '18', 'lon': '18'}
-                            data = message.location.latitude
-                            data2 = message.location.longitude
-                            req['lat'] = data
-                            req['lon'] = data2
-                            req['phone'] = s
-                            req_j = requests.post(url, json=req)
-                            req_data = req_j.json()
-                            a = req_data['lat']
-                            b = req_data['lon']
-                            print(a, b)
-                            global result
-                            result = a, b
-                            print(result)
-                            longitude = result[1]
-                            latitude = result[0]
-                            def block(message):
-                                if message.from_user.id == s1:
-                                    print(message.from_user.id)
-                                    bot.send_location(message.from_user.id, latitude, longitude)
-                                    def klon():
+                            for id_chat in cur:
+                                if m.chat.id in id_chat:
+                                    e =+ 1
+                                    if e >= 1:
+                                        cur.execute("SELECT PHONE FROM uram_tgbot WHERE ID_CHAT = %s", [m.chat.id])
+                                        cf = cur.fetchone()
+                                        con.commit()
+                                        url = 'https://uram.ddns.net/uram_bot/find'
+                                        req = {'lat': '18', 'lon': '18'}
+                                        data = message.location.latitude
+                                        data2 = message.location.longitude
+                                        req['lat'] = data
+                                        req['lon'] = data2
+                                        req['phone'] = cf[0]
+                                        req_j = requests.post(url, json=req)
+                                        req_data = req_j.json()
+                                        a = req_data['lat']
+                                        b = req_data['lon']
+                                        print(a, b)
+                                        global result
+                                        result = a, b
+                                        print(result)
+                                        longitude = result[1]
+                                        latitude = result[0]
+
+
+                                def block(message):
+                                    if message.from_user.id == s1:
+                                        print(message.from_user.id)
+                                        bot.send_location(message.from_user.id, latitude, longitude)
+                                        def klon():
+                                            mrka = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+                                            but1 = types.KeyboardButton(text='Забронировать самокат')
+                                            mrka.add(but1)
+                                            bot.send_message(message.from_user.id, "Хотите забронировать этот самокат?",
+                                                         reply_markup=mrka)
+                                        klon()
+                                    elif message.from_user.id != s1:
+                                     print('c c: ', message.from_user.id)
+                                     bot.send_location(message.from_user.id, latitude, longitude)
+                                     def klon():
                                         mrka = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
                                         but1 = types.KeyboardButton(text='Забронировать самокат')
                                         mrka.add(but1)
                                         bot.send_message(message.from_user.id, "Хотите забронировать этот самокат?",
-                                                         reply_markup=mrka)
-                                    klon()
-                                elif message.from_user.id != s1:
-                                    print('xuy: ', message.from_user.id)
-                                    bot.send_location(message.from_user.id, latitude, longitude)
-                                    def klon():
-                                        mrka = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-                                        but1 = types.KeyboardButton(text='Забронировать самокат')
-                                        mrka.add(but1)
-                                        bot.send_message(message.from_user.id, "Хотите забронировать этот самокат?",
-                                                         reply_markup=mrka)
-                                    klon()
-                            block(message)
+                                                            reply_markup=mrka)
+                                     klon()
+                                block(message)
                         except:
                             def long():
                                 markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -180,7 +222,7 @@ def phone(m, res=False):
                                     m.from_user), reply_markup=markup)
 
                             long()
-
+                        cur.commit()
                     greting()
 
             keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
