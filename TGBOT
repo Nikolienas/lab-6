@@ -2,10 +2,21 @@
 import requests
 import telebot
 from telebot import types
+import psycopg2
 
-token = '5076012878:AAFqm5lP8WC5qBpN_HfsCnYkr2l81DNIfJc'
+con = psycopg2.connect(
+  database="uram_tgbot",
+  user="postgres",
+  password="postgres",
+  host="localhost",
+  port="5432"
+)
+
+cur = con.cursor()
+
+token = '5508603109:AAFMnU6wsf2pUKSc1pp2N5IOzJJTu5D3_Xo'
 bot = telebot.TeleBot(token)
-nnn = 'норм'
+
 
 @bot.message_handler(commands=["start"])
 def start(m, res=False):
@@ -16,42 +27,41 @@ def start(m, res=False):
                                 '\nДля получения информации можете воспользоваться подсказками ниже'
                                 '\nЧто бы получить доступ к функционалу, отправьте свой номер.'.format(m.from_user),
                      reply_markup=markup)
-    user_id = m.from_user.id
-    print(user_id)
 
 
 @bot.message_handler(content_types=['contact'])
 def contact(message):
-    if message.contact is not None:
-        print(message.contact)
-        pol = '+' + message.contact.phone_number
-        print(message.contact.user_id)
-        m = []
-        m.append(message.contact.user_id)
-        def contact2():
-            for i in m:
-                if message.contact.user_id in m:
-                    if message.contact.user_id == i:
-                        global s1
-                        s1 = i
-        contact2()
-        def contact1():
-            d = []
-            d.append(pol)
-            for i in d:
-                if pol in d:
-                    if pol == i:
-                        global s
-                        s = i
-        contact1()
-        bot.send_message(message.from_user.id, 'Запись контакта прошла успешна')
-        markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-        item1 = types.KeyboardButton('История поездок')
-        item2 = types.KeyboardButton('Ближайший самокат')
-        item3 = types.KeyboardButton('Информация')
-        item4 = types.KeyboardButton("Поддержка")
-        markup.add(item1, item2, item3, item4)
-        bot.send_message(message.chat.id, 'Что вас интересует?', reply_markup=markup)
+    print(message.contact)
+    global pol
+    pol = message.contact.phone_number
+    e = 0
+    cur.execute("SELECT ID_CHAT FROM uram_tgbot")
+    try:
+        for id_chat in cur:
+            if message.chat.id in id_chat:
+                e =+ 1
+                if e == 0:
+                    e = 0
+                    cur.execute("INSERT INTO uram_tgbot (ID_CHAT, PHONE) VALUES (%s, %s)", (message.chat.id, message.contact.phone_number))
+                    con.commit()
+                elif e >= 1:
+                    e = 0
+        else:
+            cur.execute("INSERT INTO uram_tgbot (ID_CHAT, PHONE) VALUES (%s, %s)",
+                        (message.chat.id, message.contact.phone_number))
+            con.commit()
+    except psycopg2.errors.UniqueViolation:
+        print()
+
+    bot.send_message(message.from_user.id, 'Запись контакта прошла успешна')
+    markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+    item1 = types.KeyboardButton('История поездок')
+    item2 = types.KeyboardButton('Ближайший самокат')
+    item3 = types.KeyboardButton('Информация')
+    item4 = types.KeyboardButton("Поддержка")
+    markup.add(item1, item2, item3, item4)
+    bot.send_message(message.chat.id, 'Что вас интересует?', reply_markup=markup)
+
 
 
 @bot.message_handler(content_types=['text'])
@@ -60,65 +70,60 @@ def phone(m, res=False):
         if m.text == 'История поездок':
             def history():
                 try:
-                    phn = {'phone': s}
-                    url = 'https://uram.ddns.net/uram_bot/history'
-                    req_j = requests.post(url, json=phn)
-                    req_data = req_j.json()
-                    if m.from_user.id != s1:
-                        print('FUCK')
-                        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-                        button_phone = types.KeyboardButton(text='Отправить свой контакт', request_contact=True)
-                        markup.add(button_phone)
-                        bot.send_message(m.chat.id,
-                                         "Отправьте контакт повторно, произошли неполадки".format(m.from_user),
-                                         reply_markup=markup)
-                    else:
-                        for req_data['history'][0] in req_data['history']:
-                            bot.send_message(m.from_user.id, ('Цена: ' + str(req_data['history'][0]['cost']) +
-                                                              '\nНачало: ' + req_data['history'][0]['start_time'].
-                                                              replace('Mon', 'Понедельник').replace('Tue',
-                                                                                                    'Вторник').
-                                                              replace('Wed', 'Среда').replace('Thu', 'Четверг').
-                                                              replace('Fri', 'Пятница').replace('Sat', 'Суббота').
-                                                              replace('Sun', 'Воскресенье').replace('Jan',
-                                                                                                    'Января').
-                                                              replace('Feb', 'Февраля').replace('Mar', 'Марта').
-                                                              replace('Apr', 'Апреля').replace('May', 'Мая').
-                                                              replace('June', 'Июня').replace('July', 'Июля').
-                                                              replace('Aug', 'Августа').replace('Sept',
-                                                                                                'Сентября').
-                                                              replace('Oct', 'Октября').replace('Nov', 'Ноября').
-                                                              replace('Dec', 'Декабря') +
-                                                              '\nКонец: ' + req_data['history'][0]['end_time'].
-                                                              replace('Mon', 'Понедельник').replace('Tue',
-                                                                                                    'Вторник').
-                                                              replace('Wed', 'Среда').replace('Thu', 'Четверг').
-                                                              replace('Fri', 'Пятница').replace('Sat', 'Суббота').
-                                                              replace('Sun', 'Воскресенье').replace('Jan',
-                                                                                                    'Января').
-                                                              replace('Feb', 'Февраля').replace('Mar', 'Марта').
-                                                              replace('Apr', 'Апреля').replace('May', 'Мая').
-                                                              replace('June', 'Июня').replace('July', 'Июля').
-                                                              replace('Aug', 'Августа').replace('Sept',
-                                                                                                'Сентября').
-                                                              replace('Oct', 'Октября').
-                                                              replace('Nov', 'Ноября').replace('Dec', 'Декабря') +
-                                                              '\nСтатус поездки: ' + req_data['history'][0][
-                                                                  'status'].
-                                                              replace('end', 'завершена')))
+                    cur.execute("SELECT * FROM uram_tgbot")
+                    for id_chat in cur:
+                        if m.chat.id in id_chat:
+                            cur.execute("SELECT PHONE FROM uram_tgbot WHERE ID_CHAT = %s", [m.chat.id])
+                            cf = cur.fetchone()
+                            phn = {'phone': cf[0]}
+                            print(phn)
+                            url = 'https://uram.ddns.net/uram_bot/history'
+                            req_j = requests.post(url, json=phn)
+                            req_data = req_j.json()
+                            print(req_data)
+                            for req_data['history'][0] in req_data['history']:
+                                bot.send_message(m.from_user.id, ('Цена: ' + str(req_data['history'][0]['cost']) +
+                                                                  '\nНачало: ' + req_data['history'][0]['start_time'].
+                                                                  replace('Mon', 'Понедельник').replace('Tue',
+                                                                                                        'Вторник').
+                                                                  replace('Wed', 'Среда').replace('Thu', 'Четверг').
+                                                                  replace('Fri', 'Пятница').replace('Sat', 'Суббота').
+                                                                  replace('Sun', 'Воскресенье').replace('Jan',
+                                                                                                        'Января').
+                                                                  replace('Feb', 'Февраля').replace('Mar', 'Марта').
+                                                                  replace('Apr', 'Апреля').replace('May', 'Мая').
+                                                                  replace('June', 'Июня').replace('July', 'Июля').
+                                                                  replace('Aug', 'Августа').replace('Sept',
+                                                                                                    'Сентября').
+                                                                  replace('Oct', 'Октября').replace('Nov', 'Ноября').
+                                                                  replace('Dec', 'Декабря') +
+                                                                  '\nКонец: ' + req_data['history'][0]['end_time'].
+                                                                  replace('Mon', 'Понедельник').replace('Tue',
+                                                                                                        'Вторник').
+                                                                  replace('Wed', 'Среда').replace('Thu', 'Четверг').
+                                                                  replace('Fri', 'Пятница').replace('Sat', 'Суббота').
+                                                                  replace('Sun', 'Воскресенье').replace('Jan',
+                                                                                                        'Января').
+                                                                  replace('Feb', 'Февраля').replace('Mar', 'Марта').
+                                                                  replace('Apr', 'Апреля').replace('May', 'Мая').
+                                                                  replace('June', 'Июня').replace('July', 'Июля').
+                                                                  replace('Aug', 'Августа').replace('Sept',
+                                                                                                    'Сентября').
+                                                                  replace('Oct', 'Октября').
+                                                                  replace('Nov', 'Ноября').replace('Dec', 'Декабря') +
+                                                                  '\nСтатус поездки: ' + req_data['history'][0][
+                                                                      'status'].
+                                                                  replace('end', 'завершена')))
+                        else:
+                            print('meh')
+                    print(m.chat.id)
                 except KeyError:
                     bot.send_message(m.from_user.id, 'Что то пошло не так')
                 except IndexError:
                     print()
                 except UnboundLocalError:
                     print()
-                except NameError:
-                    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-                    button_phone = types.KeyboardButton(text='Отправить свой контакт', request_contact=True)
-                    markup.add(button_phone)
-                    bot.send_message(m.chat.id,
-                                     "Пожалуйста, отправьте ваш контакт и попытайтесь снова".format(m.from_user),
-                                     reply_markup=markup)
+
 
             t = history()
 
@@ -138,7 +143,7 @@ def phone(m, res=False):
                             data2 = message.location.longitude
                             req['lat'] = data
                             req['lon'] = data2
-                            req['phone'] = s
+                            req['phone'] = pol
                             req_j = requests.post(url, json=req)
                             req_data = req_j.json()
                             a = req_data['lat']
@@ -149,28 +154,14 @@ def phone(m, res=False):
                             print(result)
                             longitude = result[1]
                             latitude = result[0]
-                            def block(message):
-                                if message.from_user.id == s1:
-                                    print(message.from_user.id)
-                                    bot.send_location(message.from_user.id, latitude, longitude)
-                                    def klon():
-                                        mrka = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-                                        but1 = types.KeyboardButton(text='Забронировать самокат')
-                                        mrka.add(but1)
-                                        bot.send_message(message.from_user.id, "Хотите забронировать этот самокат?",
-                                                         reply_markup=mrka)
-                                    klon()
-                                elif message.from_user.id != s1:
-                                    print('xuy: ', message.from_user.id)
-                                    bot.send_location(message.from_user.id, latitude, longitude)
-                                    def klon():
-                                        mrka = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-                                        but1 = types.KeyboardButton(text='Забронировать самокат')
-                                        mrka.add(but1)
-                                        bot.send_message(message.from_user.id, "Хотите забронировать этот самокат?",
-                                                         reply_markup=mrka)
-                                    klon()
-                            block(message)
+                            bot.send_location(m.from_user.id, latitude, longitude)
+                            def klon():
+                                mrka = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+                                but1 = types.KeyboardButton(text='Забронировать самокат')
+                                mrka.add(but1)
+                                bot.send_message(m.chat.id, "Хотите забронировать этот самокат?", reply_markup=mrka)
+
+                            klon()
                         except:
                             def long():
                                 markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -178,7 +169,6 @@ def phone(m, res=False):
                                 markup.add(button_phone)
                                 bot.send_message(m.chat.id, 'Произошла ошибка, отправьте повторно свой контакт'.format(
                                     m.from_user), reply_markup=markup)
-
                             long()
 
                     greting()
@@ -241,88 +231,27 @@ def phone(m, res=False):
 
             def after_text_2(message):
                 print('Время, на которое человек забронировал самокат', message.text)
-                a = bot.send_message(message.chat.id,'Номер:' )
-                bot.register_next_step_handler(a, after_text_3)
-                global o
-                o = message.text
-            def after_text_3(message):
-                print('Номер: ', message.text)
-                k = message.text
                 f = open("uid.txt", 'a')
-                f.write(str(result) + " " + "на" + " " + str(o) + ', номер бронировщика: ' + k + '\n')
+                f.write(str(result) + " " + "на" + " " + str(message.text) + ', номер бронировщика: ' + pol + '\n')
                 f.close()
             bron()
         elif m.text == "Поддержка":
             keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-            item1 = types.KeyboardButton(text='Часто задаваемые вопросы.')
-            item2 = types.KeyboardButton(text='Соедените меня с оператором!')
-            item3 = types.KeyboardButton(text='Назад')
-            keyboard.add(item1, item2, item3)
-            bot.send_message(m.chat.id, 'Что вас интересует?', reply_markup=keyboard)
-        elif m.text == 'Часто задаваемые вопросы.':
-            keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-            item1 = types.KeyboardButton(text='Резко сбросился скорость самоката до 5 км/ч, в чем причина?')
-            item3 = types.KeyboardButton(text='Резко сбросился скорость самоката до 10 км/ч, в чем причина?')
-            item4 = types.KeyboardButton(text='Как переключаться между режимами на самокате?')
-            item5 = types.KeyboardButton(text='Какая масса допускается для езды на самокате?')
-            item6 = types.KeyboardButton(text='Какая максимальная скорость у самоката?')
-            item2 = types.KeyboardButton(text='Я нажимаю на газ, а самокат не едет, почему?')
-            item8 = types.KeyboardButton(text='Назад')
-            keyboard.add(item1, item2, item3, item4, item5, item6, item8)
-            bot.send_message(m.chat.id, 'Часто задаваемые вопросы.', reply_markup=keyboard)
-        elif m.text == 'Резко сбросился скорость самоката до 5 км/ч, в чем причина?':
-            keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-            item1 = types.KeyboardButton(text='Назад')
-            keyboard.add(item1)
-            bot.send_message(m.chat.id, 'Уважаемый(ая) {0.first_name}, вы выехали на запрещенную зону где езда на самокате запрещена!'.format(m.from_user))
-        elif m.text == 'Резко сбросился скорость самоката до 10 км/ч, в чем причина?':
-            keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-            item1 = types.KeyboardButton(text='Назад')
-            keyboard.add(item1)
-            bot.send_message(m.chat.id, 'Уважаемый(ая) {0.first_name}, вы выехали на ограниченную зону где езда на самокате ограничена определенной скоростью для вашей безопасности и окружающих!'.format(m.from_user))
-        elif m.text == 'Как переключаться между режимами на самокате?':
-            keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-            item1 = types.KeyboardButton(text='Назад')
-            keyboard.add(item1)
-            bot.send_message(m.chat.id, 'Уважаемый(ая) {0.first_name}, что бы переключять режимы на самокате достаточно нажать 2 раза на кнопку "фонарик"'.format(m.from_user))
-        elif m.text == 'Какая масса допускается для езды на самокате?':
-            keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-            item1 = types.KeyboardButton(text='Назад')
-            keyboard.add(item1)
-            bot.send_message(m.chat.id, 'Уважаемый(ая) {0.first_name}, разрешается езда на самокате до 100 кг!'.format(m.from_user))
-        elif m.text == 'Какая максимальная скорость у самоката?':
-            keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-            item1 = types.KeyboardButton(text='Назад')
-            keyboard.add(item1)
-            bot.send_message(m.chat.id, 'Уважаемый(ая) {0.first_name}, самоката набирает скорость до 25 км/ч'.format(m.from_user))
-        elif m.text == 'Я нажимаю на газ, а самокат не едет, почему?':
-            keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-            item1 = types.KeyboardButton(text='Назад')
-            keyboard.add(item1)
-            bot.send_message(m.chat.id, 'Уважаемый(ая), {0.first_name}, скорее всего вы просто стоите на месте. Для того что бы самокат поехал необходимо оттолкнуться, после чего нажать на газ. Самокат поедет!'.format(m.from_user))
-        elif m.text == 'Соедените меня с оператором!':
-            keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-            item2 = types.KeyboardButton(text='Назад')
-            item1 = types.KeyboardButton(text='Как будет вам легче соединиться с оператором?')
-            keyboard.add(item1, item2)
-            bot.send_message(m.chat.id, 'Как будет вам легче соединиться с оператором?', reply_markup=keyboard)
-        elif m.text == 'Как будет вам легче соединиться с оператором?':
-            keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+            item1 = types.KeyboardButton(text='Никнеймы разработчиков')
+            item2 = types.KeyboardButton(text='Номера телефонов')
+            item3 = types.KeyboardButton(text='Почтовые адреса')
             item4 = types.KeyboardButton(text='Назад')
-            item1 = types.KeyboardButton(text='Номер телефона')
-            item3 = types.KeyboardButton(text='Почтовый адрес')
-            item2 = types.KeyboardButton(text='Никнейм разработчика в телеграмме')
             keyboard.add(item1, item2, item3, item4)
-            bot.send_message(m.chat.id, 'Соедените меня с оператором!', reply_markup=keyboard)
-        elif m.text == 'Никнейм разработчика в телеграмме':
+            bot.send_message(m.chat.id, 'Что вас интересует?', reply_markup=keyboard)
+        elif m.text == 'Никнеймы разработчиков':
             nik = ["@fa_airat ::: @Odriskoll ::: @happy_rustik"]
             bot.send_message(m.chat.id, nik)
-        elif m.text == 'Номер телефона':
+        elif m.text == 'Номера телефонов':
             number = [" @fa_airat - 89174009767\n"
                       "@Odriskoll - 89178056873\n"
                       "@happy_rustik - 89273586384"]
             bot.send_message(m.chat.id, number)
-        elif m.text == 'Почтовый адрес':
+        elif m.text == 'Почтовые адреса':
             poshta = [" @fa_airat - airat1956@mail.ru\n"
                       "@Odriskoll - nikolenas0606@imbox.ru\n"
                       "@happy_rustik - rustam.sadykov.777@yandex.ru"]
@@ -331,3 +260,4 @@ def phone(m, res=False):
 
 print('bot started')
 bot.infinity_polling()
+
